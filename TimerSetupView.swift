@@ -1,4 +1,5 @@
 import SwiftUI
+import AVFoundation
 
 struct TimerSetupView: View {
     @Binding var weeklyStudyData: [Int] // Binding to weekly study data
@@ -10,7 +11,8 @@ struct TimerSetupView: View {
     @State private var hasStopped = false // Flag to track if the timer has already been stopped
     @State private var startTime: Date? // Track when the timer started
     @State private var isShowingTimerView = false
-
+    var audioPlayer: AVAudioPlayer?
+    
     let hoursRange = Array(0...24) // Extended range: 0 to 24 hours
     let minutesRange = Array(0...59)
 
@@ -66,6 +68,9 @@ struct TimerSetupView: View {
                 }
             } else {
                 // Countdown Timer
+                let totalSeconds = (selectedHours * 3600) + (selectedMinutes * 60)
+               
+                
                 Text("Time Remaining")
                     .font(.title)
                     .fontWeight(.bold)
@@ -83,8 +88,20 @@ struct TimerSetupView: View {
                         .frame(maxWidth: .infinity)
                         .background(Color.red)
                         .cornerRadius(10)
+                    
                 }
                 .padding(.horizontal, 20)
+        
+                if ((totalSeconds - timeRemaining) > 5) {
+                    VStack{
+                        Text("You Should Take a Break!")
+                            .font(.system(size:20))
+                            .padding()
+                            .background(Color.yellow.opacity(0.8)) // Highlight message
+                            .cornerRadius(10)
+                            .opacity((totalSeconds - timeRemaining) > 5 ? 1 : 0)
+                    }
+                }
             }
         }
         .padding()
@@ -93,6 +110,8 @@ struct TimerSetupView: View {
             stopTimer() // Stop the timer when the view disappears
         }
     }
+    
+    
 
     // Start the timer
     private func startTimer() {
@@ -171,6 +190,11 @@ struct TimerView: View {
 
     var body: some View {
         VStack(spacing: 20) {
+            if(elapsedTime > 5){
+                Text("You Should Take a Break!")
+                    .font(.largeTitle)
+                    .padding()
+            }
             // Display the elapsed time in HH:MM:SS format
             Text("Elapsed Time: \(formatTime(elapsedTime))")
                 .font(.largeTitle)
