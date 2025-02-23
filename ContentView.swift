@@ -1,20 +1,5 @@
-//
-//  ContentView.swift
-//  Study
-//
-//  Created by Chen Ryan on 21/2/2025.
-//
-
-//
-//  ContentView.swift
-//  Study
-//
-//  Created by Chen Ryan on 21/2/2025.
-//
-
 import SwiftUI
-
-
+import WebKit
 
 struct ContentView: View {
     @State private var email: String = ""
@@ -23,6 +8,7 @@ struct ContentView: View {
     @State private var showAlert = false
     @State private var isLoading = false
     @State private var passwordValid: String? = nil
+    @State private var isFocused: Bool = true
     
     var body: some View {
         NavigationStack {
@@ -43,7 +29,7 @@ struct ContentView: View {
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .padding()
                 
-                //Password vailidation
+                //Password validation
                 if let error = passwordValid {
                     Text(error  )
                         .font(.system(size:11,weight: .light, design: .serif))
@@ -95,6 +81,9 @@ struct ContentView: View {
             .alert(isPresented: $showAlert) {
                 Alert(title: Text("Invalid Email"), message: Text("Please enter a valid email address."), dismissButton: .default(Text("OK")))
             }
+            .onAppear {
+                startCheckingFocus()
+            }
         }
     }
     private func validPass(pass: String){
@@ -109,7 +98,6 @@ struct ContentView: View {
             if(char.isNumber){
                 num+=1
             }
-        
         }
         if (pass.rangeOfCharacter(from: charSet) != nil){
             if(upper>0 && num>0){
@@ -118,7 +106,6 @@ struct ContentView: View {
         }
         else {
             passwordValid = "Password must contain at least one uppercase letter, one number, and one special character."
-
         }
     }
     
@@ -146,8 +133,24 @@ struct ContentView: View {
         return email.range(of: emailRegex, options: .regularExpression) != nil
     }
     
+    // Function to check focus from HTML
+    private func startCheckingFocus() {
+        Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+            checkFocusStatus()
+        }
+    }
+    
+    private func checkFocusStatus() {
+        let url = URL(string: "http://localhost:8080/focus-status")!
+        URLSession.shared.dataTask(with: url) { data, _, _ in
+            if let data = data, let status = String(data: data, encoding: .utf8) {
+                DispatchQueue.main.async {
+                    self.isFocused = (status.trimmingCharacters(in: .whitespacesAndNewlines) == "Focused")
+                }
+            }
+        }.resume()
+    }
 }
-
 
 // Preview
 struct ContentView_Previews: PreviewProvider {
@@ -155,5 +158,4 @@ struct ContentView_Previews: PreviewProvider {
         ContentView()
     }
 }
-
 
